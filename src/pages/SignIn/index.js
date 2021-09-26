@@ -10,7 +10,7 @@ export default function SignIn() {
     const handleSignIn = async () => {
         try {
             // formulario
-            await signIn();
+            await signIn('mrffilipe@outlook.com', '123456');
         } catch (error) {
             console.log(error);
         }

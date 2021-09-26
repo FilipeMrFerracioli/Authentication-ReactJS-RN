@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { login } from '../services/authAxios'
+import { authApiConfig, login } from '../services/authAxios'
 
 const authContextData = {
     signed: Boolean,
     user: String | null,
     loading: Boolean,
-    signIn: (async () => {}),
-    signOut: (async () => {})
+    signIn: (async () => { }),
+    signOut: (async () => { })
 }
 
 const AuthContexts = createContext(authContextData);
@@ -21,10 +21,11 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         async function loadStorageData() {
             try {
-                const storagedUser = await AsyncStorage.getItem("@Auth:user");
-                const storagedToken = await AsyncStorage.getItem("@Auth:token");
+                const storagedUser = await AsyncStorage.getItem("@Auth:user"); //RN
+                const storagedToken = await AsyncStorage.getItem("@Auth:token"); //RN
 
                 if (storagedUser && storagedToken) {
+                    authApiConfig.defaults.headers['Authorization'] = `Bearer ${storagedToken}`;
                     setUser(storagedUser);
                 }
                 setLoading(false);
@@ -36,13 +37,16 @@ export const AuthProvider = ({ children }) => {
         loadStorageData();
     }, []);
 
-    async function signIn() {
+    async function signIn(paramEmail, paramPassword) {
         try {
             setLoading(true);
 
-            const { message, token } = await login();
+            const { message, token } = await login(paramEmail, paramPassword);
+
+            authApiConfig.defaults.headers['Authorization'] = `Bearer ${token}`;
+
             setUser(message);
-            await AsyncStorage.multiSet([["@Auth:user", message], ["@Auth:token", token]]);
+            await AsyncStorage.multiSet([["@Auth:user", message], ["@Auth:token", token]]); //RN
 
             setLoading(false);
         } catch (error) {
@@ -52,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     async function signOut() {
         try {
-            await AsyncStorage.clear();
+            await AsyncStorage.clear(); //RN
             setUser(null);
         } catch (error) {
             console.log(error);
